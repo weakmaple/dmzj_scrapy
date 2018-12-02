@@ -22,8 +22,12 @@ class DmzjSpiderSpider(scrapy.Spider):
     #将pc端网址装化为app端网址
     def first_url_parse(self,response):
         url = 'https://m.dmzj.com/info/%s.html'
-        manhua_id_1 = response.xpath('//head/script/text()').get()
-        manhua_id = re.search(r'.*?g_current_id = "(.*?)";.*',manhua_id_1).group(1)
+        if 'info' in self.url:
+            manhua_id_1 = re.split('/',self.url)[-1]
+            manhua_id = re.split(r'\.',manhua_id_1)[0]
+        else:
+            manhua_id_1 = response.xpath('//head/script/text()').get()
+            manhua_id = re.search(r'.*?g_current_id = "(.*?)";.*',manhua_id_1).group(1)
         main_url = url % manhua_id
         # print(main_url)
         yield scrapy.http.Request(url=main_url, callback=self.parse_total)
@@ -47,5 +51,3 @@ class DmzjSpiderSpider(scrapy.Spider):
         pic_urls = json.loads(re.search(r'.*?"page_url":(.*?),"chapter_type".*', pic_urls).group(1))
         item = DmzjScrapyItem(pic_urls=pic_urls,title=title,big_title=self.manhua_name)
         yield item
-
-
